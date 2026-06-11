@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TRIBUNAL_MORAL.exe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+            text-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .screen {
+            display: none;
+            animation: flicker 0.8s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.8; }
+            5% { opacity: 0.5; }
+            10% { opacity: 0.9; }
+            15% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .terminal-prompt {
+            color: #888888;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-align: left;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+            text-shadow: 0 0 10px #ffffff;
+        }
+
+        h1, h2 {
+            color: #ffffff;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #888888;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+        }
+
+        p {
+            font-size: 1.05rem;
+            margin-bottom: 1.2rem;
+            color: #ffffff;
+            text-align: left;
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: #ffffff;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .description {
+            margin-bottom: 2.5rem;
+            border-left: 2px solid #888888;
+            padding-left: 15px;
+        }
+
+        .highlight {
+            color: #ff3333;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin: 1.5rem 0;
+            text-shadow: 0 0 5px rgba(255, 51, 51, 0.5);
+            text-align: center;
+        }
+
+        .quote {
+            font-style: italic;
+            border-left: 3px solid #ff3333;
+            padding-left: 15px;
+            margin: 2rem auto;
+            text-align: left;
+            color: #ff3333;
+            text-shadow: 0 0 5px rgba(255, 51, 51, 0.3);
+        }
+
+        .dilemma-header {
+            color: #888888;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: left;
+        }
+
+        .situation-text {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            text-align: justify;
+            text-align-last: left;
+            border: 1px dashed #888888;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 2rem;
+            width: 100%;
+        }
+
+        .button-group.vertical {
+            align-items: center;
+        }
+
+        button {
+            background-color: #000000;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            padding: 16px 20px;
+            font-size: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            width: 100%;
+            max-width: 350px;
+            min-height: 50px;
+            touch-action: manipulation;
+            text-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.98);
+            background-color: #222222;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+            color: #000000;
+            text-shadow: none;
+            box-shadow: 0 0 15px #ffffff;
+        }
+
+        .btn-secondary {
+            border-color: #888888;
+            color: #888888;
+            text-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: #888888;
+            color: #000000;
+            box-shadow: 0 0 10px #888888;
+        }
+
+        .report-box {
+            background-color: #000000;
+            border: 2px solid #ffffff;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .report-box p {
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #888888;
+            padding-bottom: 8px;
+            font-size: 0.95rem;
+            color: #ffffff;
+        }
+
+        .report-box p:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+                align-items: flex-start;
+                padding-top: 30px;
+            }
+            
+            h1 { 
+                font-size: 1.4rem; 
+                letter-spacing: 1px;
+            }
+            
+            h2 { 
+                font-size: 1.2rem; 
+            }
+            
+            p { 
+                font-size: 0.95rem; 
+            }
+            
+            .logo { 
+                font-size: 3rem; 
+            }
+            
+            .situation-text {
+                font-size: 1rem;
+                padding: 10px;
+            }
+            
+            button {
+                font-size: 0.9rem;
+                padding: 14px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="container">
+        <section id="screen-home" class="screen active">
+            <div class="terminal-prompt">> SYSTEM_INIT...</div>
+            <div class="logo">⚖️</div>
+            <h1>TRIBUNAL_MORAL</h1>
+            <p class="subtitle">"Quem julga também é julgado."</p>
+            <p class="description">
+                Você enfrentará decisões difíceis.<br>
+                Não existem respostas certas ou erradas.<br>
+                Apenas escolhas e suas consequências.
+            </p>
+            <div class="button-group">
+                <button class="btn-primary" onclick="goToScreen('screen-intro')">[ INICIAR_JULGAMENTO ]</button>
+                <button class="btn-secondary" onclick="goToScreen('screen-about')">[ SOBRE_O_PROJETO ]</button>
+            </div>
+        </section>
+
+        <section id="screen-about" class="screen hidden">
+            <div class="terminal-prompt">> ACESSANDO_ARQUIVO_LEIAME...</div>
+            <h2>SOBRE O PROJETO</h2>
+            <p>Este sistema utiliza dilemas éticos de alta complexidade.</p>
+            <p>Não existem respostas corretas.</p>
+            <p>O objetivo é expor os valores que você utiliza para tomar decisões quando todas as opções geram dano.</p>
+            <button class="btn-secondary" onclick="goToScreen('screen-home')">[ VOLTAR ]</button>
+        </section>
+
+        <section id="screen-intro" class="screen hidden">
+            <div class="terminal-prompt">> CARREGANDO_PERFIL_JUIZ...</div>
+            <h2>INTRODUÇÃO</h2>
+            <p>Você foi designado para analisar casos complexos.</p>
+            <p>Cada decisão será registrada no seu histórico moral.</p>
+            <p class="highlight">AVISO: As escolhas possuem peso psicológico.</p>
+            <button class="btn-primary" onclick="startDilemmas()">[ INICIAR_CASOS ]</button>
+        </section>
+
+        <section id="screen-dilemma" class="screen hidden">
+            <div class="dilemma-header">
+                <span id="dilemma-counter">CASO_01 DE 05</span>
+            </div>
+            <h2 id="dilemma-title">TITULO_DO_CASO</h2>
+            <p id="dilemma-situation" class="situation-text">Situacao do dilema aqui.</p>
+            <div id="dilemma-options" class="options-container"></div>
+        </section>
+
+        <section id="screen-revelation" class="screen hidden">
+            <div class="terminal-prompt">> PROCESSANDO_DADOS...</div>
+            <div class="logo">⚖️</div>
+            <h2>A REVELACAO</h2>
+            <p>Durante todo este processo...</p>
+            <p>você acreditou estar julgando terceiros.</p>
+            <p class="highlight">Mas cada decisão revelou a arquitetura da sua própria moralidade.</p>
+            <button class="btn-primary" onclick="generateAndShowReport()">[ VER_RELATORIO ]</button>
+        </section>
+
+        <section id="screen-report" class="screen hidden">
+            <div class="terminal-prompt">> GERANDO_PERFIL_PSICOLOGICO...</div>
+            <h2>RELATORIO MORAL</h2>
+            <div id="report-content" class="report-box"></div>
+            <button class="btn-primary" onclick="goToScreen('screen-final-question')">[ PROSSEGUIR ]</button>
+        </section>
+
+        <section id="screen-final-question" class="screen hidden">
+            <div class="terminal-prompt">> ULTIMA_INTERROGACAO...</div>
+            <h2>PERGUNTA FINAL</h2>
+            <p>Você omitiu verdades.</p>
+            <p>Você quebrou princípios sagrados.</p>
+            <p>Você tomou decisões que mancharam sua consciência.</p>
+            <p>Você sacrificou inocentes em nome de um cálculo frio.</p>
+            <p class="highlight">Você ainda se considera uma pessoa moral?</p>
+            <div class="button-group vertical">
+                <button class="btn-secondary" onclick="goToScreen('screen-end')">[ SIM ]</button>
+                <button class="btn-secondary" onclick="goToScreen('screen-end')">[ NAO ]</button>
+                <button class="btn-secondary" onclick="goToScreen('screen-end')">[ INCONCLUSIVO ]</button>
+            </div>
+        </section>
+
+        <section id="screen-end" class="screen hidden">
+            <div class="terminal-prompt">> SISTEMA_ENCERRADO.</div>
+            <div class="logo">⚖️</div>
+            <h2>VEREDITO FINAL</h2>
+            <p>É fácil julgar as escolhas dos outros a partir da segurança da omissão.</p>
+            <p>Difícil é compreender as próprias escolhas quando o sangue está em suas mãos.</p>
+            <p class="quote">"A verdadeira questão não é se você é moral. Mas quanto da sua humanidade você está disposto a vender para manter a ilusão de que é."</p>
+            <button class="btn-primary" onclick="resetGame()">[ REINICIAR_SISTEMA ]</button>
+        </section>
+    </div>
+
+    <script>
+        const dilemmas = [
+            {
+                id: 1,
+                title: "O Trem",
+                situation: "Um trem desgovernado está prestes a atingir cinco pessoas. Você pode puxar uma alavanca e desviá-lo para outro trilho. Nesse trilho existe apenas uma pessoa. O que você faz?",
+                options: [
+                    { text: "Desviar o trem", scores: { utilitarismo: 1, sacrificioIndividual: 1 } },
+                    { text: "Não interferir", scores: { principios: 1 } }
+                ]
+            },
+            {
+                id: 2,
+                title: "O Remédio",
+                situation: "Uma criança está gravemente doente. Seu pai não possui dinheiro para comprar um remédio. Sem o medicamento ela morrerá. O pai deve roubá-lo?",
+                options: [
+                    { text: "Sim", scores: { empatia: 1, quebraRegras: 1 } },
+                    { text: "Não", scores: { principios: 1 } }
+                ]
+            },
+            {
+                id: 3,
+                title: "A Mentira",
+                situation: "Uma pessoa perigosa procura seu amigo. Ela pergunta onde ele está. Você sabe a resposta. Você mente?",
+                options: [
+                    { text: "Mentir", scores: { empatia: 1, mentiraJustificada: 1 } },
+                    { text: "Dizer a verdade", scores: { principios: 1 } }
+                ]
+            },
+            {
+                id: 4,
+                title: "A Cola",
+                situation: "Você descobre que um colega colou na prova. Se denunciá-lo, ele perderá uma bolsa de estudos. O que fazer?",
+                options: [
+                    { text: "Denunciar", scores: { justica: 1, principios: 1 } },
+                    { text: "Não denunciar", scores: { empatia: 1 } }
+                ]
+            },
+            {
+                id: 5,
+                title: "O Médico",
+                situation: "Cinco pacientes precisam urgentemente de transplantes. Um paciente saudável possui compatibilidade com todos. O médico deveria sacrificar um para salvar cinco?",
+                options: [
+                    { text: "Sim", scores: { utilitarismo: 1, sacrificioIndividual: 1 } },
+                    { text: "Não", scores: { principios: 1 } }
+                ]
+            }
+        ];
+
+        let currentDilemmaIndex = 0;
+        let userScores = {
+            empatia: 0,
+            principios: 0,
+            utilitarismo: 0,
+            quebraRegras: 0,
+            sacrificioIndividual: 0,
+            mentiraJustificada: 0,
+            justica: 0
+        };
+
+        function goToScreen(screenId) {
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+                screen.classList.add('hidden');
+            });
+
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.remove('hidden');
+                targetScreen.classList.add('active');
+            }
+        }
+
+        function startDilemmas() {
+            currentDilemmaIndex = 0;
+            for (let key in userScores) {
+                userScores[key] = 0;
+            }
+            renderDilemma();
+            goToScreen('screen-dilemma');
+        }
+
+        function renderDilemma() {
+            const dilemma = dilemmas[currentDilemmaIndex];
+            
+            document.getElementById('dilemma-counter').textContent = `Caso ${currentDilemmaIndex + 1} de ${dilemmas.length}`;
+            document.getElementById('dilemma-title').textContent = dilemma.title;
+            document.getElementById('dilemma-situation').textContent = dilemma.situation;
+
+            const optionsContainer = document.getElementById('dilemma-options');
+            optionsContainer.innerHTML = '';
+
+            dilemma.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-primary';
+                btn.textContent = option.text;
+                btn.onclick = () => handleChoice(option.scores);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleChoice(scores) {
+            for (let key in scores) {
+                if (userScores.hasOwnProperty(key)) {
+                    userScores[key] += scores[key];
+                }
+            }
+
+            currentDilemmaIndex++;
+            if (currentDilemmaIndex < dilemmas.length) {
+                renderDilemma();
+            } else {
+                goToScreen('screen-revelation');
+            }
+        }
+
+        function generateAndShowReport() {
+            const reportContent = document.getElementById('report-content');
+            
+            const reportLines = [
+                `Você mentiu em ${userScores.mentiraJustificada} situação(ões).`,
+                `Você quebrou regras em ${userScores.quebraRegras} situação(ões).`,
+                `Você priorizou o bem coletivo em ${userScores.utilitarismo} situação(ões).`,
+                `Você seguiu princípios em ${userScores.principios} situação(ões).`,
+                `Você demonstrou empatia em ${userScores.empatia} situação(ões).`,
+                `Você aceitou sacrificar indivíduos em ${userScores.sacrificioIndividual} situação(ões).`,
+                `Você aplicou a justiça de forma imparcial em ${userScores.justica} situação(ões).`
+            ];
+
+            let html = '';
+            reportLines.forEach(line => {
+                html += `<p>${line}</p>`;
+            });
+
+            reportContent.innerHTML = html;
+            goToScreen('screen-report');
+        }
+
+        function resetGame() {
+            currentDilemmaIndex = 0;
+            for (let key in userScores) {
+                userScores[key] = 0;
+            }
+            goToScreen('screen-home');
+        }
+    </script>
+</body>
+</html>
+```
